@@ -1,2 +1,561 @@
-/* Design ng interface natin — layout, colors, fonts, job cards,
-   buttons, at iba pang visual styling. */
+@import url("https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=DM+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600;700&display=swap");
+
+:root {
+    --sand: #ebe3d0;
+    --sand-deep: #e0d5ba;
+    --ivory: #f9f5ea;
+    --paper: #fffdf6;
+    --khaki: #c3b091;
+    --khaki-deep: #8f8250;
+    --olive: #6f6540;
+    --olive-dark: #574f31;
+
+    /* Ink */
+    --ink: #2b261b;
+    --ink-soft: #5e5744;
+    --ink-faint: #9a9079;
+
+    /* Lines */
+    --line: #d9cdb0;
+    --line-soft: #e6dcc3;
+
+    /* Status */
+    --red: #a33a2a;
+    --green: #4f6b3a;
+
+    --unit: 44px;
+    --display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+    --body: "Instrument Sans", "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
+    --mono: "DM Mono", ui-monospace, Consolas, "Courier New", monospace;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    color: var(--ink);
+    background: var(--sand);
+    font-family: var(--body);
+    font-size: 15px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, p {
+    margin: 0;
+}
+
+:focus-visible {
+    outline: 3px solid rgba(143, 130, 80, 0.55);
+    outline-offset: 2px;
+}
+
+#header {
+    position: relative;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 24px 12px;
+}
+
+#header h1 {
+    font-family: var(--display);
+    font-size: clamp(1.5rem, 3.5vw, 2.3rem);
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+}
+
+#header p {
+    margin-top: 8px;
+    max-width: 50ch;
+    color: var(--ink-soft);
+    font-size: 1.05rem;
+}
+
+#main {
+    display: grid;
+    grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
+    grid-template-areas:
+        "jobs jobs"
+        "controls controls"
+        "sim  log"
+        "gantt gantt"
+        "results results";
+    gap: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 28px 24px 48px;
+}
+
+#main > section {
+    min-width: 0;
+    padding: 24px;
+    background: var(--ivory);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+}
+
+#job-input-section { grid-area: jobs; }
+#controls-section  { grid-area: controls; }
+#simulation-section { grid-area: sim; }
+#log-section       { grid-area: log; }
+#gantt-section     { grid-area: gantt; }
+#results-section   { grid-area: results; }
+
+h2 {
+    margin-bottom: 18px;
+    font-family: var(--display);
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+}
+
+#job-form {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 14px;
+}
+
+#job-form > div,
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--ink-soft);
+}
+
+input,
+select {
+    width: 100%;
+    padding: 11px 13px;
+    font: inherit;
+    color: var(--ink);
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+input::placeholder {
+    color: #aca287;
+}
+
+input:focus,
+select:focus {
+    outline: none;
+    border-color: var(--khaki-deep);
+    box-shadow: 0 0 0 4px rgba(195, 176, 145, 0.4);
+}
+
+button {
+    padding: 11px 20px;
+    font: inherit;
+    font-weight: 600;
+    color: var(--olive-dark);
+    background: transparent;
+    border: 1px solid var(--khaki-deep);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.15s ease, color 0.15s ease,
+        border-color 0.15s ease;
+}
+
+button:hover {
+    background: var(--sand);
+}
+
+button:active {
+    transform: translateY(1px);
+}
+
+button:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+#add-job-btn,
+#start-btn {
+    color: var(--paper);
+    background: var(--olive);
+    border-color: var(--olive);
+}
+
+#add-job-btn:hover,
+#start-btn:hover {
+    background: var(--olive-dark);
+    border-color: var(--olive-dark);
+}
+
+#clear-jobs-btn {
+    color: var(--red);
+    border-color: transparent;
+}
+
+#clear-jobs-btn:hover {
+    background: rgba(163, 58, 42, 0.1);
+}
+
+#job-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 18px;
+}
+
+#job-message {
+    min-height: 1.55em;
+    margin-top: 14px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+}
+
+#job-message.error   { color: var(--red); }
+#job-message.success { color: var(--green); }
+
+table {
+    width: 100%;
+    margin-top: 16px;
+    border-collapse: collapse;
+    font-variant-numeric: tabular-nums;
+}
+
+#job-table,
+#results-table {
+    display: block;
+    overflow-x: auto;
+}
+
+th,
+td {
+    padding: 11px 16px;
+    text-align: left;
+    white-space: nowrap;
+    border-bottom: 1px solid var(--line-soft);
+}
+
+th {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--ink-soft);
+    background: var(--sand);
+    border-bottom: 1px solid var(--line);
+}
+
+th:first-child { border-top-left-radius: 8px; }
+th:last-child  { border-top-right-radius: 8px; }
+
+tbody tr:hover {
+    background: var(--paper);
+}
+
+#main > #controls-section {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    padding: 16px 24px;
+}
+
+#controls-section h2 {
+    margin: 0 14px 0 0;
+    font-size: 1rem;
+}
+
+#clock {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-left: auto;
+    padding: 8px 18px;
+    color: var(--ink-soft);
+    font-size: 0.82rem;
+    font-weight: 600;
+    background: var(--sand);
+    border-radius: 999px;
+}
+
+#clock-value {
+    min-width: 2ch;
+    color: var(--olive);
+    font-family: var(--display);
+    font-size: 1.6rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+#simulation-section {
+    display: grid;
+    grid-template-columns: minmax(130px, 170px) minmax(0, 1fr);
+    gap: 22px;
+}
+
+#simulation-section h2 {
+    font-family: var(--body);
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0;
+    color: var(--ink-soft);
+}
+
+#cpu-section,
+#queue-section {
+    display: flex;
+    flex-direction: column;
+}
+
+#cpu-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    min-height: 100px;
+    padding: 12px;
+    text-align: center;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+#cpu-job {
+    font-family: var(--display);
+    font-size: 1.6rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.15;
+    color: var(--ink-faint);
+}
+
+#cpu-remaining {
+    margin-top: 4px;
+    font-family: var(--mono);
+    font-size: 0.82rem;
+    color: var(--ink-soft);
+}
+
+#cpu-box.running,
+#cpu-box.is-running {
+    background: var(--ink);
+    border: 2px solid var(--ink);
+}
+
+#cpu-box.running #cpu-job,
+#cpu-box.is-running #cpu-job {
+    color: var(--paper);
+}
+
+#cpu-box.running #cpu-remaining,
+#cpu-box.is-running #cpu-remaining {
+    color: var(--khaki);
+}
+
+#ready-queue {
+    display: flex;
+    flex: 1;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    gap: 10px;
+    min-height: 100px;
+    padding: 14px;
+    background: var(--sand);
+    border-radius: 14px;
+}
+
+#ready-queue > * {
+    padding: 9px 14px;
+    font-family: var(--mono);
+    font-weight: 500;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-left: 5px solid var(--job-color, var(--olive));
+    border-radius: 6px;
+}
+
+#ready-queue:empty::before {
+    content: "No jobs are waiting.";
+    color: var(--ink-faint);
+}
+
+#event-log {
+    height: 150px;
+    overflow-y: auto;
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+}
+
+#event-log > * {
+    padding: 7px 12px;
+    border-bottom: 1px dashed var(--line);
+}
+
+#event-log:empty::before {
+    content: "Events appear here when you press Start.";
+    display: block;
+    padding: 12px;
+    color: var(--ink-faint);
+}
+
+#gantt-section {
+    overflow-x: auto;
+}
+
+#gantt-chart,
+#gantt-timeline {
+    display: flex;
+    width: max-content;
+    min-width: 100%;
+}
+
+#gantt-chart {
+    min-height: 58px;
+    overflow: hidden;
+    background: var(--sand-deep);
+    border-radius: 8px;
+}
+
+#gantt-chart > * {
+    flex: none;
+    min-width: var(--unit);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 6px;
+    font-family: var(--mono);
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--paper);
+    background: var(--job-color, var(--olive));
+    border-right: 2px solid var(--ivory);
+}
+
+#gantt-chart > .idle {
+    color: var(--ink-soft);
+    background: repeating-linear-gradient(
+        135deg, var(--sand), var(--sand) 6px, var(--sand-deep) 6px, var(--sand-deep) 12px
+    );
+}
+
+#gantt-chart:empty::before {
+    content: "The chart builds as jobs run.";
+    align-self: center;
+    padding: 0 16px;
+    color: var(--ink-soft);
+}
+
+#gantt-timeline > * {
+    flex: none;
+    min-width: var(--unit);
+    padding-top: 6px;
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--ink-soft);
+}
+
+.job-0 { --job-color: #6f6540; }
+.job-1 { --job-color: #b0894a; }
+.job-2 { --job-color: #8c5a3c; }
+.job-3 { --job-color: #5f7a5a; }
+.job-4 { --job-color: #a8553f; }
+.job-5 { --job-color: #4f6b7a; }
+.job-6 { --job-color: #9a8c4b; }
+.job-7 { --job-color: #6b4f6e; }
+.job-8 { --job-color: #7a7a70; }
+.job-9 { --job-color: #3f5a45; }
+
+#results-section {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+}
+
+#results-section > h2,
+#results-section > table {
+    grid-column: 1 / -1;
+}
+
+#results-section > table {
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+
+#results-section > p {
+    display: flex;
+    flex-direction: column-reverse;
+    justify-content: flex-end;
+    gap: 2px;
+    padding: 16px 18px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--ink-soft);
+    background: var(--sand);
+    border-radius: 10px;
+}
+
+#results-section > p span {
+    font-family: var(--display);
+    font-size: 1.9rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.2;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+}
+
+#footer {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px 36px;
+    font-size: 0.85rem;
+    color: var(--ink-soft);
+}
+
+@media (max-width: 900px) {
+    #main {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-areas:
+            "jobs"
+            "controls"
+            "sim"
+            "log"
+            "gantt"
+            "results";
+    }
+
+    #simulation-section {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    #main > section {
+        padding: 20px;
+    }
+
+    #header {
+        padding-top: 36px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    button,
+    input,
+    select,
+    #cpu-box {
+        transition: none;
+    }
+}

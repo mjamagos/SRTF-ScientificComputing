@@ -1,2 +1,140 @@
 <!-- Structure ng web interface natin. Dito ilalagay yung mga sections
      tulad ng job input, CPU, Ready Queue, Event Log, Gantt Chart, at Results. -->
+
+
+     <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SRTF Scheduler Simulator</title>
+</head>
+<body>
+
+    <header id="header">
+        <h1>Shortest Remaining Time First (SRTF)</h1>
+        <p>Preemptive Shortest Job Next Process Scheduling Simulator</p>
+    </header>
+
+    <main id="main">
+
+        <section id="job-input-section">
+            <h2>Job Input</h2>
+
+            <div id="job-form">
+                <div>
+                    <label for="job-id">Job ID</label>
+                    <input type="text" id="job-id" placeholder="J001">
+                </div>
+                <div>
+                    <label for="job-name">Job Name</label>
+                    <input type="text" id="job-name" placeholder="Climate Simulation">
+                </div>
+                <div>
+                    <label for="arrival-time">Arrival Time</label>
+                    <input type="number" id="arrival-time" min="0" placeholder="0">
+                </div>
+                <div>
+                    <label for="duration">Estimated Duration</label>
+                    <input type="number" id="duration" min="1" placeholder="10">
+                </div>
+            </div>
+
+            <div id="job-buttons">
+                <button id="add-job-btn">Add Job</button>
+                <button id="load-csv-btn">Load Sample Jobs (CSV)</button>
+                <button id="clear-jobs-btn">Clear Jobs</button>
+            </div>
+
+            <p id="job-message"></p>
+
+            <table id="job-table">
+                <thead>
+                    <tr>
+                        <th>Job ID</th>
+                        <th>Job Name</th>
+                        <th>Arrival Time</th>
+                        <th>Estimated Duration</th>
+                    </tr>
+                </thead>
+                <tbody id="job-table-body"></tbody>
+            </table>
+        </section>
+
+        <section id="controls-section">
+            <h2>Controls</h2>
+            <button id="start-btn">Start</button>
+            <button id="pause-btn">Pause</button>
+            <button id="reset-btn">Reset</button>
+
+            <label for="speed-select">Speed</label>
+            <select id="speed-select">
+                <option value="1500">Slow</option>
+                <option value="1000" selected>Normal</option>
+                <option value="400">Fast</option>
+            </select>
+
+            <p id="clock">Current Time: <span id="clock-value">0</span></p>
+        </section>
+
+        <section id="simulation-section">
+            <div id="cpu-section">
+                <h2>CPU</h2>
+                <div id="cpu-box">
+                    <p id="cpu-job">Idle</p>
+                    <p id="cpu-remaining"></p>
+                </div>
+            </div>
+
+            <div id="queue-section">
+                <h2>Ready Queue</h2>
+                <div id="ready-queue"></div>
+            </div>
+        </section>
+
+        <section id="log-section">
+            <h2>Event Log</h2>
+            <div id="event-log"></div>
+        </section>
+
+        <section id="gantt-section">
+            <h2>Gantt Chart</h2>
+            <div id="gantt-chart"></div>
+            <div id="gantt-timeline"></div>
+        </section>
+
+        <section id="results-section">
+            <h2>Results</h2>
+            <table id="results-table">
+                <thead>
+                    <tr>
+                        <th>Job ID</th>
+                        <th>Job Name</th>
+                        <th>Arrival Time</th>
+                        <th>Duration</th>
+                        <th>Completion Time</th>
+                        <th>Turnaround Time</th>
+                        <th>Waiting Time</th>
+                    </tr>
+                </thead>
+                <tbody id="results-table-body"></tbody>
+            </table>
+
+            <p>Average Waiting Time: <span id="avg-waiting">-</span></p>
+            <p>Average Turnaround Time: <span id="avg-turnaround">-</span></p>
+            <p>Total Burst Time: <span id="total-burst">-</span></p>
+            <p>Total Finish Time: <span id="total-finish">-</span></p>
+            <p>CPU Utilization: <span id="cpu-utilization">-</span></p>
+            <p>Throughput: <span id="throughput">-</span></p>
+            <p>Preemptions: <span id="preemptions">-</span></p>
+        </section>
+
+    </main>
+
+    <footer id="footer">
+        <p>CSP108 - Operating System Midterm Project</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

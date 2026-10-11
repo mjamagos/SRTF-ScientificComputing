@@ -26,3 +26,27 @@ http://127.0.0.1:5000/
 
 
 2. Interface Overview
+​The user interface is organized into six functional sections:
+​Header - Displays the project title (Shortest Remaining Time First Simulator) and course description (CSP108 – Operating System Midterm Project).
+​Job Input Section - Contains the input fields, dataset action buttons, and the Job Input Table displaying all registered processes.
+​Controls Deck - Features execution controls (Start, Pause, Reset), an animation Speed selector, and a real-time Simulation Clock Ticker.
+​Live Simulation Area:
+​CPU Box - Shows the currently executing job ID and its dynamic remaining burst time.
+​Ready Queue Container - Displays color-coded badges for all processes currently waiting in line.
+​Event Log Section - Displays a scrolling, time-stamped text record of every process event (arrivals, dispatches, preemptions, and completions).
+​Gantt Chart & Results Section - Renders a color-coded visual execution timeline alongside a summary table with comprehensive performance statistics.
+
+​3. Step-by-Step Operating Guide
+​Step 1: Loading or Entering Process Data
+​You can populate jobs into the scheduling table using two methods:
+​Option A: Loading Sample CSV Dataset
+​Click the "Load Sample Jobs (CSV)" button.
+​The system fetches samplejobs.csv via the backend API and populates the table automatically (e.g., J001: Climate Simulation, J002: Statistical Analysis, etc.).
+​Option B: Manual Job Entry
+​In the Job Input form, enter the required fields:
+​Job ID: A unique text identifier (e.g., J008).
+​Job Name: A descriptive process name (e.g., Database Query).
+​Arrival Time: A non-negative whole number (e.g., 2).
+​Estimated Duration: A positive whole number representing the CPU burst length (e.g., 8).
+​Click "Add Job".
+​Note: To reset the input list, click "Clear Jobs".

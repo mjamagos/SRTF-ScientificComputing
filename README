@@ -7,6 +7,7 @@ Dito mo ilagay usar manual, april...
 - ​Any modern web browser (Google Chrome, Mozilla Firefox, Microsoft Edge, or Safari)
 
 ​Installation & Launch Instructions
+
 1. Directory Structure - Ensure your project folder contains the following structure:
 project-root/
 │
@@ -26,6 +27,7 @@ http://127.0.0.1:5000/
 
 
 2. Interface Overview
+
 ​The user interface is organized into six functional sections:
 ​Header - Displays the project title (Shortest Remaining Time First Simulator) and course description (CSP108 – Operating System Midterm Project).
 ​Job Input Section - Contains the input fields, dataset action buttons, and the Job Input Table displaying all registered processes.
@@ -37,6 +39,7 @@ http://127.0.0.1:5000/
 ​Gantt Chart & Results Section - Renders a color-coded visual execution timeline alongside a summary table with comprehensive performance statistics.
 
 ​3. Step-by-Step Operating Guide
+
 ​Step 1: Loading or Entering Process Data
 ​You can populate jobs into the scheduling table using two methods:
 
@@ -51,3 +54,46 @@ http://127.0.0.1:5000/
 - ​Estimated Duration: A positive whole number representing the CPU burst length (e.g., 8).
 ​Click "Add Job".
 ​Note: To reset the input list, click "Clear Jobs".
+
+​Step 2: Configuring Simulation Controls
+​Before launching the simulation:
+
+​Select your desired animation playback speed from the Speed drop-down menu:
+- ​Slow (1500ms per unit) - Best for step-by-step observation and classroom analysis.
+- ​Normal (1000ms per unit) - Standard real-time animation rate.
+- ​Fast (400ms per unit) - Recommended for large datasets with high burst times.
+
+​Step 3: Running and Monitoring the Simulation
+1. ​Click the "Start" button to launch the simulator.
+2. ​Observe the live state components as the clock advances:
+- ​Clock Ticker (Current Time) - Displays the current discrete time unit (T).
+​- CPU Box - Turns dark and highlights the process ID actively utilizing the CPU, alongside its remaining time countdown.
+- ​Ready Queue - Displays color-coded badges of waiting jobs, re-sorted automatically by shortest remaining time.
+- ​Event Log - Appends live messages detailing state transitions (e.g., [T=3] J002 preempted J001, [T=8] J002 completed execution).
+​- Gantt Chart - Progressively builds colored blocks for each executed time unit, automatically merging adjacent units belonging to the same job.
+
+​Step 4: Pausing, Resuming, and Resetting
+- ​Pause / Resume: Click the "Pause" button at any point during execution to freeze time and inspect current queue states or log entries. Click "Resume" to continue playback.
+​- Reset Simulation: Click "Reset" to clear the current visual timeline, clock, and output results while keeping your inputted job list intact for re-execution.
+
+​Step 5: Analyzing Results and Performance Metrics
+​Once the clock reaches the final process completion time, the simulation stops automatically, displaying:
+1. ​Process Results Table:
+- ​Completion Time (CT)
+- ​Turnaround Time (TT)
+​Waiting Time (WT)
+2. ​Global Analytics Dashboard:
+​- Average Waiting Time (AWT)
+- ​Average Turnaround Time (ATAT)
+- ​Total Burst Time & Total Finish Time
+- ​CPU Utilization (%)
+- ​Throughput (Jobs/ms)
+- ​Preemption Count
+
+​4. Error Messages & Troubleshooting
+
+Message / ErrorCauseSolution
+"Job ID cannot be empty."Job ID field was left blank.Enter a valid string identifier (e.g., J001).
+"Duplicate Job ID: [ID]"The Job ID entered already exists in the table.Provide a unique identifier for each job.
+"Arrival time and duration must be whole numbers..."Inputs contained decimals, negative values, or letters.Use non-negative integers for Arrival Time (\ge 0) and positive integers for Duration (> 0).
+"Add jobs or load the sample CSV first."Simulation started without any process entries.Add at least one valid job or click "Load Sample Jobs (CSV)".

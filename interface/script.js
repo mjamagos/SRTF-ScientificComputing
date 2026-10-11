@@ -1,7 +1,6 @@
 // Dito gagawin yung frontend interaction at animation ng simulator,
 // tulad ng pag-update ng CPU, Ready Queue, Event Log, at Gantt Chart.
 
-
 const jobIdInput = document.getElementById("job-id");
 const jobNameInput = document.getElementById("job-name");
 const arrivalInput = document.getElementById("arrival-time");
@@ -12,6 +11,7 @@ const resultsTableBody = document.getElementById("results-table-body");
 
 const addJobBtn = document.getElementById("add-job-btn");
 const loadCsvBtn = document.getElementById("load-csv-btn");
+const csvFileInput = document.getElementById("csv-file-input");
 const clearJobsBtn = document.getElementById("clear-jobs-btn");
 
 const startBtn = document.getElementById("start-btn");
@@ -30,11 +30,8 @@ const eventLog = document.getElementById("event-log");
 
 const ganttChart = document.getElementById("gantt-chart");
 const ganttTimeline = document.getElementById("gantt-timeline");
-
 const clockValue = document.getElementById("clock-value");
 
-
-// Simulation variables
 let simulationData = null;
 let currentTime = 0;
 let animationTimer = null;
@@ -44,18 +41,16 @@ let isPaused = false;
 
 const UNIT_WIDTH = 44;
 
-
-// Map each job ID to its color index.
 let jobColorMap = {};
-
 
 function showMessage(message, type = "") {
     jobMessage.textContent = message;
     jobMessage.className = type;
 }
 
-// Add a job using the input form.
 function addJob() {
+    if (isRunning) return;
+
     const jobId = jobIdInput.value.trim();
     const jobName = jobNameInput.value.trim();
     const arrival = arrivalInput.value.trim();
@@ -82,7 +77,6 @@ function addJob() {
         return;
     }
 
-    // Prevent duplicate job IDs.
     const existingIds = getJobs().map(job => job.job_id);
 
     if (existingIds.includes(jobId)) {
@@ -99,17 +93,15 @@ function addJob() {
 
     addJobToTable(job);
 
-    // Clear the form after adding a job.
     jobIdInput.value = "";
     jobNameInput.value = "";
     arrivalInput.value = "";
     durationInput.value = "";
 
+    resetDisplay();
     showMessage(`${jobId} added successfully.`, "success");
 }
 
-
-// Add one row to the job table.
 function addJobToTable(job) {
     const row = document.createElement("tr");
 
@@ -128,9 +120,6 @@ function addJobToTable(job) {
 
     jobTableBody.appendChild(row);
 }
-
-
-// Read jobs from the HTML table.
 function getJobs() {
     return [...jobTableBody.querySelectorAll("tr")].map(row => {
         const cells = row.querySelectorAll("td");
@@ -144,68 +133,211 @@ function getJobs() {
     });
 }
 
-
-// Clear all input jobs.
-function clearJobs() {
-    stopAnimation();
-
-    jobTableBody.replaceChildren();
-
-    showMessage("All jobs have been cleared.", "success");
-
-    resetDisplay();
-}
+// Open the computer's file picker.
+loadCsvBtn.addEventListener("click", function () {
+    if (!isRunning) {
+        csvFileInput.click();
+    }
+});
 
 
-// --------------------------------------------------
-// LOAD SAMPLE CSV DATA
-// --------------------------------------------------
+// Read and load the selected CSV file.
+csvFileInput.addEventListener("change", async function () {
+    const file = csvFileInput.files[0];
 
-async function loadSampleJobs() {
-    stopAnimation();
+    if (!file) return;
+
+    if (!file.name.toLowerCase().endsWith(".csv")) {
+        showMessage("Please select a CSV file.", "error");
+        csvFileInput.value = "";
+        return;
+    }
 
     try {
-        showMessage("Loading sample jobs...", "");
+        showMessage(`Reading ${file.name}...`);
 
-        const response = await fetch("/api/sample-jobs");
+        const csvText = await file.text();
 
-        // Read the response safely to detect HTML error pages.
-        const responseText = await response.text();
+        // Validate and parse the file before changing the table.
+        const jobs = parseCSV(csvText);
 
-        let data;
-
-        try {
-            data = JSON.parse(responseText);
-        } catch {
-            throw new Error(
-                "Flask returned HTML instead of JSON. Check the /api/sample-jobs route."
-            );
+        if (jobs.length === 0) {
+            throw new Error("The CSV file contains no jobs.");
         }
 
-        if (!response.ok) {
-            throw new Error(data.error || "Failed to load sample jobs.");
-        }
+        // Stop any previous animation.
+        stopAnimation();
 
+        // Replace the old jobs with the uploaded jobs.
         jobTableBody.replaceChildren();
 
-        data.jobs.forEach(job => {
+        jobs.forEach(job => {
             addJobToTable(job);
         });
 
+        // Clear the previous simulation output.
         resetDisplay();
 
         showMessage(
-            `${data.jobs.length} sample jobs loaded successfully.`,
+            `${jobs.length} job(s) loaded from ${file.name}.`,
             "success"
         );
 
     } catch (error) {
-        console.error("CSV loading error:", error);
+        console.error("CSV upload error:", error);
 
         showMessage(error.message, "error");
     }
+
+    // Allows the same file to be selected again.
+    csvFileInput.value = "";
+});
+
+function parseCSV(text) {
+    const rows = [];
+
+    let row = [];
+    let field = "";
+    let insideQuotes = false;
+
+    // Remove the optional UTF-8 byte-order mark.
+    text = text.replace(/^\uFEFF/, "");
+
+    for (let i = 0; i < text.length; i++) {
+        const char = text[i];
+
+        if (char === '"') {
+            // Two quotes inside a quoted field represent one quote.
+            if (insideQuotes && text[i + 1] === '"') {
+                field += '"';
+                i++;
+            } else {
+                insideQuotes = !insideQuotes;
+            }
+        } else if (char === "," && !insideQuotes) {
+            row.push(field.trim());
+            field = "";
+        } else if (
+            (char === "\n" || char === "\r") &&
+            !insideQuotes
+        ) {
+            // Support both Windows and Unix line endings.
+            if (char === "\r" && text[i + 1] === "\n") {
+                i++;
+            }
+
+            row.push(field.trim());
+
+            if (row.some(value => value !== "")) {
+                rows.push(row);
+            }
+
+            row = [];
+            field = "";
+        } else {
+            field += char;
+        }
+    }
+
+    if (insideQuotes) {
+        throw new Error("A quoted field was not closed.");
+    }
+
+    // Add the final row if the file does not end with a newline.
+    if (field !== "" || row.length > 0) {
+        row.push(field.trim());
+
+        if (row.some(value => value !== "")) {
+            rows.push(row);
+        }
+    }
+
+    if (rows.length < 2) {
+        throw new Error(
+            "The CSV must contain column headers and at least one job."
+        );
+    }
+
+    // Required column names.
+    const headers = rows[0].map(header =>
+        header.trim().toLowerCase()
+    );
+    const requiredHeaders = [
+        "job id",
+        "job name",
+        "arrival time",
+        "estimated duration"
+    ];
+
+const indexes = requiredHeaders.map(header =>
+    headers.indexOf(header)
+);
+
+    if (indexes.some(index => index === -1)) {
+        throw new Error(
+            "Missing required columns: Job ID, Job Name, Arrival Time, Estimated Duration."
+        );
+    }
+
+    const jobs = rows.slice(1).map((values, index) => {
+        const csvRowNumber = index + 2;
+
+        // Make sure each row contains all required columns.
+        if (indexes.some(columnIndex => columnIndex >= values.length)) {
+            throw new Error(
+                `CSV row ${csvRowNumber} has missing values.`
+            );
+        }
+
+        const arrivalValue = values[indexes[2]];
+        const durationValue = values[indexes[3]];
+
+        const job = {
+            job_id: values[indexes[0]],
+            job_name: values[indexes[1]],
+            arrival_time: Number(arrivalValue),
+            duration: Number(durationValue)
+        };
+
+        if (
+            !job.job_id ||
+            !job.job_name ||
+            arrivalValue === "" ||
+            durationValue === "" ||
+            !Number.isInteger(job.arrival_time) ||
+            !Number.isInteger(job.duration) ||
+            job.arrival_time < 0 ||
+            job.duration <= 0
+        ) {
+            throw new Error(
+                `Invalid data on CSV row ${csvRowNumber}. Check the job ID, name, arrival time, and duration.`
+            );
+        }
+
+        return job;
+    });
+
+    // Check for duplicate IDs within the uploaded file.
+    const ids = jobs.map(job => job.job_id);
+
+    if (new Set(ids).size !== ids.length) {
+        throw new Error("The CSV contains duplicate Job IDs.");
+    }
+
+    return jobs;
 }
 
+function clearJobs() {
+    if (isRunning) return;
+
+    stopAnimation();
+
+    jobTableBody.replaceChildren();
+
+    resetDisplay();
+
+    showMessage("All jobs have been cleared.", "success");
+}
 
 async function startSimulation() {
     if (isRunning) return;
@@ -216,25 +348,27 @@ async function startSimulation() {
     const jobs = getJobs();
 
     if (jobs.length === 0) {
-        showMessage("Add jobs or load the sample CSV first.", "error");
+        showMessage(
+            "Add jobs or upload a CSV file first.",
+            "error"
+        );
         return;
     }
 
     try {
-        showMessage("Calculating SRTF schedule...", "");
+        showMessage("Calculating SRTF schedule...");
 
         startBtn.disabled = true;
         loadCsvBtn.disabled = true;
+        csvFileInput.disabled = true;
         addJobBtn.disabled = true;
         clearJobsBtn.disabled = true;
 
         const response = await fetch("/api/simulate", {
             method: "POST",
-
             headers: {
                 "Content-Type": "application/json"
             },
-
             body: JSON.stringify({
                 jobs: jobs
             })
@@ -259,7 +393,7 @@ async function startSimulation() {
         simulationData = data;
         currentTime = 0;
 
-        // Assign colors according to the input job order.
+        // Assign a color to each job.
         jobColorMap = {};
 
         simulationData.jobs.forEach((job, index) => {
@@ -289,7 +423,6 @@ async function startSimulation() {
     }
 }
 
-// Pause or resume the animation.
 function togglePause() {
     if (!isRunning) return;
 
@@ -297,43 +430,45 @@ function togglePause() {
 
     if (isPaused) {
         clearTimeout(animationTimer);
+
         pauseBtn.textContent = "Resume";
-        showMessage("Simulation paused.", "");
+        showMessage("Simulation paused.");
+
     } else {
         pauseBtn.textContent = "Pause";
         showMessage("Simulation resumed.", "success");
+
         animateStep();
     }
 }
 
-
-// Stop any active timer.
 function stopAnimation() {
     clearTimeout(animationTimer);
 
+    animationTimer = null;
     isRunning = false;
     isPaused = false;
 }
 
 
-// Reset the simulation output but keep the input jobs.
 function resetSimulation() {
     stopAnimation();
     resetDisplay();
 
-    showMessage("Simulation has been reset.", "");
+    showMessage("Simulation has been reset.");
 }
 
 
-// Clear all simulation output.
 function resetDisplay() {
     currentTime = 0;
     simulationData = null;
+    jobColorMap = {};
 
     clockValue.textContent = "0";
 
     cpuJob.textContent = "Idle";
     cpuRemaining.textContent = "";
+
     cpuBox.classList.remove("running", "is-running");
 
     readyQueue.replaceChildren();
@@ -360,16 +495,15 @@ function resetDisplay() {
 }
 
 
-// Enable the job input controls.
 function enableInputControls() {
     startBtn.disabled = false;
     loadCsvBtn.disabled = false;
+    csvFileInput.disabled = false;
     addJobBtn.disabled = false;
     clearJobsBtn.disabled = false;
 }
 
 
-// Add the initial time marker.
 function prepareTimeline() {
     ganttTimeline.replaceChildren();
 
@@ -377,7 +511,6 @@ function prepareTimeline() {
 }
 
 
-// Add a time marker to the timeline.
 function addTimelineMarker(time) {
     const marker = document.createElement("span");
 
@@ -387,23 +520,25 @@ function addTimelineMarker(time) {
     ganttTimeline.appendChild(marker);
 }
 
-// Add one unit of execution to the Gantt chart.
-// Consecutive units of the same job are merged visually.
+
 function addGanttUnit(jobId, time) {
     const children = [...ganttChart.children];
     const lastBlock = children[children.length - 1];
+
+    const displayedJobId = jobId ?? "IDLE";
 
     const className = jobId === null
         ? "idle"
         : `job-${jobColorMap[jobId] ?? 0}`;
 
-    // Merge adjacent time units belonging to the same job.
+    // Merge consecutive units of the same job.
     if (
         lastBlock &&
-        lastBlock.dataset.jobId === (jobId ?? "IDLE") &&
+        lastBlock.dataset.jobId === displayedJobId &&
         Number(lastBlock.dataset.end) === time
     ) {
         lastBlock.dataset.end = time + 1;
+
         lastBlock.style.width =
             `${(time + 1 - Number(lastBlock.dataset.start)) * UNIT_WIDTH}px`;
 
@@ -414,15 +549,15 @@ function addGanttUnit(jobId, time) {
         const block = document.createElement("div");
 
         block.className = className;
-        block.dataset.jobId = jobId ?? "IDLE";
+        block.dataset.jobId = displayedJobId;
         block.dataset.start = time;
         block.dataset.end = time + 1;
 
         block.style.width = `${UNIT_WIDTH}px`;
-
         block.textContent = jobId ?? "Idle";
 
-        block.title = `${jobId ?? "CPU Idle"}: ${time} - ${time + 1}`;
+        block.title =
+            `${jobId ?? "CPU Idle"}: ${time} - ${time + 1}`;
 
         ganttChart.appendChild(block);
     }
@@ -431,7 +566,6 @@ function addGanttUnit(jobId, time) {
 }
 
 
-// Find the job running at the specified time.
 function getRunningSegment(time) {
     return simulationData.gantt_chart.find(segment =>
         segment.start <= time && time < segment.end
@@ -439,9 +573,10 @@ function getRunningSegment(time) {
 }
 
 
-// Calculate remaining time based on the actual Gantt segments.
 function getRemainingTime(jobId, time) {
-    const job = simulationData.jobs.find(item => item.job_id === jobId);
+    const job = simulationData.jobs.find(
+        item => item.job_id === jobId
+    );
 
     if (!job) return 0;
 
@@ -461,7 +596,6 @@ function getRemainingTime(jobId, time) {
 }
 
 
-// Display the job currently using the CPU.
 function updateCPU(time) {
     const segment = getRunningSegment(time);
 
@@ -486,14 +620,13 @@ function updateCPU(time) {
 }
 
 
-// Display the ready queue using the latest queue snapshot.
 function updateReadyQueue(time) {
-    const queueEvent = [...simulationData.events]
-        .filter(event =>
-            event.time <= time &&
-            (event.type === "QUEUE_PUSH" || event.type === "QUEUE_POP")
-        )
-        .at(-1);
+    const queueEvents = simulationData.events.filter(event =>
+        event.time <= time &&
+        (event.type === "QUEUE_PUSH" || event.type === "QUEUE_POP")
+    );
+
+    const queueEvent = queueEvents[queueEvents.length - 1];
 
     readyQueue.replaceChildren();
 
@@ -549,7 +682,6 @@ function formatEvent(event) {
 }
 
 
-// Display events occurring at the current time.
 function displayEventsAt(time) {
     simulationData.events
         .filter(event => event.time === time)
@@ -562,9 +694,9 @@ function displayEventsAt(time) {
             eventLog.appendChild(entry);
         });
 
-    // Keep the newest event visible.
     eventLog.scrollTop = eventLog.scrollHeight;
 }
+
 
 
 function animateStep() {
@@ -572,7 +704,7 @@ function animateStep() {
 
     const finishTime = simulationData.statistics.total_finish_time;
 
-    // Handle final-time events after the last execution unit.
+    // Display final events after the last execution unit.
     if (currentTime >= finishTime) {
         displayEventsAt(currentTime);
 
@@ -589,35 +721,32 @@ function animateStep() {
         return;
     }
 
-    // Display events such as arrivals and preemptions.
     displayEventsAt(currentTime);
 
-    // Update CPU and queue state.
     const runningJob = updateCPU(currentTime);
 
     updateReadyQueue(currentTime);
 
-    // Add the current time unit to the Gantt chart.
     addGanttUnit(runningJob, currentTime);
 
-    // Advance simulation time by one unit.
     currentTime++;
 
     clockValue.textContent = currentTime;
 
-    // Schedule the next animation step.
     animationTimer = setTimeout(
         animateStep,
         Number(speedSelect.value)
     );
 }
 
-// Complete the simulation.
+
+
 function finishSimulation() {
     isRunning = false;
     isPaused = false;
 
     clearTimeout(animationTimer);
+    animationTimer = null;
 
     startBtn.disabled = false;
     pauseBtn.disabled = true;
@@ -683,8 +812,6 @@ function displayResults() {
 
 addJobBtn.addEventListener("click", addJob);
 
-loadCsvBtn.addEventListener("click", loadSampleJobs);
-
 clearJobsBtn.addEventListener("click", clearJobs);
 
 startBtn.addEventListener("click", startSimulation);
@@ -693,5 +820,5 @@ pauseBtn.addEventListener("click", togglePause);
 
 resetBtn.addEventListener("click", resetSimulation);
 
-// Load the actual samplejobs.csv data when the page opens.
-loadSampleJobs();
+// The user can now upload their own CSV file.
+showMessage("Add jobs manually or click Input CSV to upload a file.");

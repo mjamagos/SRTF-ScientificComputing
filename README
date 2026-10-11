@@ -21,4 +21,8 @@ project-root/
 2. Start the Flask Server - Open a terminal or command prompt in your project root folder and execute:
 python app.py
 
-3. 
+3. Access the Interface - Open your web browser and navigate to: 
+http://127.0.0.1:5000/
+
+
+2. Interface Overview

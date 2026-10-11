@@ -1,1 +1,24 @@
 Dito mo ilagay usar manual, april...
+
+​1. System Requirements & Setup
+​Prerequisites - ​Before running the simulator, ensure your system has the following software installed:
+- ​Python 3.8 or higher
+- ​Flask (pip install flask)
+- ​Any modern web browser (Google Chrome, Mozilla Firefox, Microsoft Edge, or Safari)
+
+​Installation & Launch Instructions
+1. Directory Structure - Ensure your project folder contains the following structure:
+project-root/
+│
+├── app.py                   # Flask server wrapper
+├── algorithm.py             # Core SRTF simulation backend
+├── samplejobs.csv           # Preset job manifest dataset
+└── interface/               # Frontend asset directory
+    ├── index.html           # Structure and controls
+    ├── style.css            # Custom CSS layout & theme
+    └── script.js            # Animation ticker & UI controller
+
+2. Start the Flask Server - Open a terminal or command prompt in your project root folder and execute:
+python app.py
+
+3. 
